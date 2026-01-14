@@ -36,6 +36,8 @@ def contains_suspicious_words(url):
     url_lower = url.lower()
     return 1 if any(word in url_lower for word in suspicious_words) else 0
 
+#later - can analyse each subdomain to find most common words/tokens associated with phishing and self update? 
+
 def extract_features(url):
     return [
         count_dots(url),

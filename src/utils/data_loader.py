@@ -22,3 +22,6 @@ class DataLoader:
         urls = self.df[url_column].astype(str).tolist()
         labels = self.df[label_column].astype(int).tolist()
         return urls, labels
+    
+    #function to check how many bad lines?
+    #function to drop missed URLs?
