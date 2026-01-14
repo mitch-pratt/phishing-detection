@@ -18,13 +18,6 @@ def evaluate_classification(y_test, y_pred):
         "recall": recall,
         "f1": f1
     }
-    
-
-def print_classification(y_test, y_pred):
-    print(f"Accuracy: {(accuracy_score):.4f}")
-    print(f"Precision: {(precision_score):.4f}")
-    print(f"Recall: {(recall_score):.4f}")
-    print(f"F1-score: {(f1_score):.4f}")
 
 def plot_confusion_matrix(y_test, y_pred, title):
     cm = confusion_matrix(y_test, y_pred)

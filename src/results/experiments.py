@@ -1,3 +1,5 @@
+from src.results.metrics import evaluate_classification, plot_confusion_matrix
+
 def run_single_model(train_fn, X_train, X_test, y_train, y_test, evaluate_fn):
     model = train_fn(X_train, y_train)
     y_pred = model.predict(X_test)
@@ -15,3 +17,4 @@ def run_experiment(models, X_train, X_test, y_train, y_test, evaluate_fn):
         trained_models[name] = model
     
     return trained_models, results
+
