@@ -31,10 +31,17 @@ def count_subdomains(url):
     return len(parts) - 2
 # count subdomains #
 
+SUSPICIOUS_WORDS = [
+    "login","secure","verify","update","account","verification",
+    "store","remove","customer","configuration","recover","support",
+    "activity","billing","online","provider","protect","services",
+    "service","resolved","home","setup","center","summary",
+    "contact","server","solution"
+]
+
 def contains_suspicious_words(url):
-    suspicious_words = ["login", "secure", "verify", "update", "account"]
     url_lower = url.lower()
-    return 1 if any(word in url_lower for word in suspicious_words) else 0
+    return sum(word in url_lower for word in SUSPICIOUS_WORDS)
 
 #later - can analyse each subdomain to find most common words/tokens associated with phishing and self update? 
 

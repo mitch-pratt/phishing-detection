@@ -1,5 +1,6 @@
 from src.models.neural_network import train_neural_network
 from src.models.knn_model import train_knn
+from src.models.k_means import train_kmeans
 from src.features.feature_split import feature_split
 from src.results.metrics import plot_confusion_matrix, evaluate_classification
 from src.utils.data_loader import DataLoader
@@ -7,21 +8,25 @@ from src.utils.data_checker import DataChecker
 from src.features.feature_matrix import build_feature_matrix, FeatureMatrixChecker
 from src.models.random_forest import train_random_forest, predict
 from src.results.plots import plot_metric, plot_metric_select
-from src.results.experiments import run_experiment, run_single_model
+from src.results.experiments import run_experiment, run_single_model, map_clusters_to_labels
 from src.features.feature_extraction import extract_features
+import numpy as np
 
 X_train = X_test = y_train = y_test = None
+current_model = None
 
 models = {
     "Random Forest": train_random_forest,
     "KNN": train_knn,
-    "Neural Network": train_neural_network
+    "Neural Network": train_neural_network,
+    "K-Means": train_kmeans
 }
 
 MODEL_MENU = {
     "1": "Random Forest",
     "2": "KNN",
-    "3": "Neural Network"
+    "3": "Neural Network",
+    "4": "K-Means"
 }
 
 
@@ -30,6 +35,7 @@ def show_menu():
     print("2. Build feature matrix")
     print("3. Train single model")
     print("4. Run full experiment")
+    print("5. URL Classifier")
     print("0. Exit")
 
 def show_model_menu():
@@ -37,6 +43,7 @@ def show_model_menu():
     print("1. Random Forest")
     print("2. KNN")
     print("3. Neural Network")
+    print("4. K-Means")
 
 def demo_data_loading():
     print("\n Loading dataset...")
@@ -94,7 +101,7 @@ def run_single_model_with_display(name, train_fn, X_train, X_test, y_train, y_te
         evaluate_classification
     )
     plot_confusion_matrix(y_test, model.predict(X_test), name)
-    return model, metrics
+    return model #, metrics
 
 while True:
 
@@ -116,7 +123,7 @@ while True:
                 print("Invalid selection")
             else:
                 train_fn = models[selected_name]
-                run_single_model_with_display(
+                current_model = run_single_model_with_display(
                     selected_name,
                     train_fn,
                     X_train, X_test,
@@ -136,6 +143,27 @@ while True:
             
             for metric in ["accuracy", "precision", "recall", "f1"]:
                 plot_metric_select(results, metric)
+
+    elif choice == "5":
+        print(set(y_train))
+        print(extract_features("www.google.com"))
+        print(extract_features("nobell.it/..."))
+        print("Training samples:", len(X_train))
+        y_pred = current_model.predict(X_test)
+        print(np.unique(y_pred, return_counts=True))
+        if current_model is None:
+            print("Please train a model first (option 3).")
+        else:
+            url = input("Enter URL: ")
+            features = extract_features(url)
+
+            if hasattr(current_model, "cluster_centers_"):
+                cluster = current_model.predict([features])[0]
+                prediction = current_model.cluster_label_map[cluster]
+            else:
+                prediction = current_model.predict([features])
+        
+            print("Prediction:", prediction)
 
     elif choice == "0":
         print("Exiting...")
