@@ -68,13 +68,26 @@ def demo_feature_engineering():
     print("Sample URL:", sample_url)
     print("Extracted features:", features)
     feature_names = [
+        "URL length",
         "Dot count",
         "Hyphen count",
-        "URL length",
         "Digit count",
         "@ symbol present",
         "Subdomain count",
-        "Suspicious words present"
+        "Suspicious words present",
+        "Raw word count",
+        "Average word length",
+        "Longest word",
+        "Shortest word",
+        "Word length std",
+        "Domain length",
+        "Path length",
+        "Known TLD",
+        "Special char count",
+        "Consecutive repeat",
+        "Punycode",
+        "Has www",
+        "Has com"
     ]
 
     for name, value in zip(feature_names, features):
