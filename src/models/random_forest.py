@@ -2,8 +2,12 @@ from sklearn.ensemble import RandomForestClassifier
 
 def build_random_forest():
     model = RandomForestClassifier(
-        n_estimators=100,
+        n_estimators=75,
         random_state=42
+        #max_depth=20,
+        #max_features="sqrt",
+        #min_samples_split=5
+        #min_samples_leaf=2
     )
     return model
 

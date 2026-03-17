@@ -11,6 +11,53 @@ from src.results.plots import plot_metric, plot_metric_select
 from src.results.experiments import run_experiment, run_single_model, map_clusters_to_labels
 from src.features.feature_extraction import extract_features
 import numpy as np
+from src.results.plots import plot_kmeans_feature_separation, plot_feature_importance
+
+feature_names = [
+    "URL length",
+    "Dot count",
+    "Hyphen count",
+    "Digit count",
+    "@ symbol present",
+    "Subdomain count",
+
+    "Suspicious word count",
+
+    "Raw word count",
+    "Average word length",
+    "Longest word length",
+    "Shortest word length",
+    "Word length std",
+    "Digit ratio",
+
+    "Domain length",
+    "Path length",
+    "Path level",
+
+    "Dash count in hostname",
+
+    "Special char count",
+    "Underscore count",
+    "Percent encoding count",
+    "Ampersand count",
+    "Hash count",
+
+    "Query component count",
+
+    "No HTTPS",
+    "IP address in URL",
+    "HTTPS token in hostname",
+
+    "Domain keyword in subdomain",
+
+    "Known TLD",
+
+    "Consecutive character repeat",
+    "Punycode",
+
+    "Contains WWW",
+    "Contains .com"
+]
 
 X_train = X_test = y_train = y_test = None
 current_model = None
@@ -36,6 +83,7 @@ def show_menu():
     print("3. Train single model")
     print("4. Run full experiment")
     print("5. URL Classifier")
+    print("6. Feature Importance")
     print("0. Exit")
 
 def show_model_menu():
@@ -44,6 +92,27 @@ def show_model_menu():
     print("2. KNN")
     print("3. Neural Network")
     print("4. K-Means")
+
+def show_feature_menu():
+    print("Select feature importance method:")
+    print("1. Random Forest")
+    print("2. K-Means Clustering")
+
+def run_feature_importance(option, X_train, y_train, X_test, features_names):
+    if option == "1":
+        print("\nRunning Random Forest feature importance...")
+
+        model = train_random_forest(X_train, y_train)
+        plot_feature_importance(model, feature_names)
+
+    elif option == "2":
+        print("\nRunning K-Means clustering analysis...")
+
+        model = train_kmeans(X_train, y_train)
+        plot_kmeans_feature_separation(model, feature_names)
+
+    else:
+        print("Invalid selection.")
 
 def demo_data_loading():
     print("\n Loading dataset...")
@@ -67,28 +136,7 @@ def demo_feature_engineering():
     print("\n Feature extraction example")
     print("Sample URL:", sample_url)
     print("Extracted features:", features)
-    feature_names = [
-        "URL length",
-        "Dot count",
-        "Hyphen count",
-        "Digit count",
-        "@ symbol present",
-        "Subdomain count",
-        "Suspicious words present",
-        "Raw word count",
-        "Average word length",
-        "Longest word",
-        "Shortest word",
-        "Word length std",
-        "Domain length",
-        "Path length",
-        "Known TLD",
-        "Special char count",
-        "Consecutive repeat",
-        "Punycode",
-        "Has www",
-        "Has com"
-    ]
+    
 
     for name, value in zip(feature_names, features):
         print(f"{name}: {value}")
@@ -177,6 +225,22 @@ while True:
                 prediction = current_model.predict([features])
         
             print("Prediction:", prediction)
+
+    elif choice == "6":
+        if X_train is None:
+            print("Please build feature matrix first (option 2).")
+
+        else:
+            show_feature_menu()
+            feature_imp_choice = input("Select method: ")
+
+            run_feature_importance(
+                feature_imp_choice,
+                X_train,
+                y_train,
+                X_test,
+                feature_names
+            )
 
     elif choice == "0":
         print("Exiting...")

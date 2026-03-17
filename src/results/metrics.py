@@ -1,5 +1,6 @@
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
+import numpy as np
 
 def evaluate_classification(y_test, y_pred):
     accuracy = accuracy_score(y_test, y_pred)
@@ -25,4 +26,3 @@ def plot_confusion_matrix(y_test, y_pred, title):
     disp.plot()
     plt.title(title)
     plt.show()
-    
