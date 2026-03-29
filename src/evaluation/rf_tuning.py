@@ -1,4 +1,5 @@
-from src.results.metrics import evaluate_classification
+from src.evaluation.metrics import evaluate_classification
+
 
 def random_forest_tree_experiment(X_train, X_test, y_train, y_test, tree_values):
     from sklearn.ensemble import RandomForestClassifier

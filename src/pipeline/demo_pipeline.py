@@ -1,8 +1,7 @@
-from src.utils.data_loader import DataLoader
-from src.utils.data_checker import DataChecker
-from src.utils.config import feature_names
-from src.features.feature_matrix import build_feature_matrix, FeatureMatrixChecker, extract_features
-from src.features.feature_split import feature_split
+from src.config.config import feature_names
+from src.dataset.dataset_manager import DataLoader
+from src.features.feature_extraction import FeatureMatrixChecker, build_feature_matrix, extract_features
+from src.pipeline.pipeline import feature_split
 
 def demo_data_loading():
     print("\n Loading dataset...")
@@ -13,7 +12,7 @@ def demo_data_loading():
     print(f"Cleaned dataset shape: {df.shape}")
     urls, labels = loader.get_urls_labels()
     print("\n Dataset summary")
-    DataChecker.print_summary(urls, labels)
+    DataLoader.print_summary(urls, labels)
 
 def demo_feature_engineering():
     
@@ -42,3 +41,4 @@ def demo_feature_engineering():
     print("Testing samples:", X_test.shape[0])
 
     return X_train, X_test, y_train, y_test
+

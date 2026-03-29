@@ -1,4 +1,5 @@
-from src.pipeline.core import train_model, evaluate_model
+from src.models.model_manager import evaluate_model, train_model
+
 
 def run_experiment(models, X_train, X_test, y_train, y_test, evaluate_fn):
     results = {}

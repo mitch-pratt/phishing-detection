@@ -23,5 +23,9 @@ class DataLoader:
         labels = self.df[label_column].astype(int).tolist()
         return urls, labels
     
-    #function to check how many bad lines?
-    #function to drop missed URLs?
+    @staticmethod
+    def print_summary(urls, labels):
+        print("Number of URLs:\n", len(urls))
+        print("Number of labels:\n", len(labels))
+        print("Sample URLs:\n", urls[:3])
+        print("Sample labels:\n", labels[:3])

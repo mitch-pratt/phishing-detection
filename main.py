@@ -1,116 +1,185 @@
-import numpy as np
+from src.session.session import Session
 
-from src.results.metrics import evaluate_classification
-from src.results.plots import plot_metric_select
-from src.results.experiments import run_single_model_with_display, plot_confusion_matrix
-from src.experiments.runner import run_experiment
+from src.pipeline.demo_pipeline import demo_data_loading, demo_feature_engineering
+from src.pipeline.pipeline import (
+    ensure_dataset,
+    initialise_models,
+    run_model_comparison,
+    run_classifier_workflow,
+    run_feature_importance_workflow,
+    run_model_optimisation_workflow
+)
 
-from src.features.feature_extraction import extract_features
-from src.features.feature_importance import run_feature_importance
-
-from src.utils.session import Session
-from src.utils.demo_pipeline import demo_data_loading, demo_feature_engineering
-from src.utils.config import models, MODEL_MENU, feature_names
-from src.utils.cluster_check import predict_url
-
-from src.ui.cli import show_menu, show_feature_menu, show_model_menu
+from src.evaluation.feature_subset_experiment import feature_subset_workflow
+from src.features.feature_extraction import show_selected_features
+from src.models.model_manager import describe_model
 
 session = Session()
+ensure_dataset(session)
+initialise_models(session)
+
+def select_active_model(session):
+    if not session.models:
+        print("No models available.")
+        return
+
+    print("\nAvailable models:")
+    for i, name in enumerate(session.models.keys(), 1):
+        print(f"{i}. {name}")
+
+    choice = input("Select model: ")
+
+    try:
+        selected_name = list(session.models.keys())[int(choice) - 1]
+        session.model = session.models[selected_name]
+        print(f"Active model set to: {selected_name}")
+    except:
+        print("Invalid selection.")
+
+def main_menu():
+    print("\nMain Menu")
+    print("1. Experiment Mode")
+    print("2. URL Classifier")
+    print("0. Exit")
+    return input("Select option: ")
+
+
+def experiment_menu():
+    print("\n--- Experiment Mode ---")
+    print("1. Load/inspect dataset")
+    print("2. Build feature matrix")
+    print("3. Train single model")
+    print("4. Run full experiment")
+    print("5. Feature Importance")
+    print("6. Feature Subset Experiment")
+    print("7. Model Optimisation")
+    print("8. Evaluate Model")
+    print("9. Model Info")
+    print("10. Current Features")
+    print("0. Back")
+    return input("Select option: ")
+
+
+def classifier_menu():
+    print("\n--- URL Classifier ---")
+    print("1. Select Model")  
+    print("2. Classify URL")
+    print("3. Model Info")
+    print("0. Back")
+    return input("Select option: ")
+
+def model_menu():
+    print("\n--- Model Experiments ---")
+    print("1. Run Model Comparison")  
+    print("2. Optimise Model")
+    print("0. Back")
+    return input("Select option: ")
+
+def feature_menu():
+    print("\n--- Feature Experiments ---")
+    print("1. Feature importance")
+    print("2. Feature subset experiment")
+    print("3. Current features")
+    print("0. Back")
+    return input("Select option: ")
+
+def data_menu():
+    print("\n--- Data / Debug ---")
+    print("1. Load/inspect dataset")
+    print("2. Build feature matrix")
+    print("0. Back")
+    return input("Select option: ")
+
+def run_experiment_mode():
+    while True:
+        print("\n--- Experiment Mode ---")
+        print("1. Model Experiments")
+        print("2. Feature Experiments")
+        print("3. Data / Debug Tools")
+        print("0. Back")
+
+        choice = input("Select option: ")
+
+        if choice == "1":
+            run_model_experiments()
+
+        elif choice == "2":
+            run_feature_experiments()
+
+        elif choice == "3":
+            run_data_tools()
+
+        elif choice == "0":
+            break
+
+def run_model_experiments():
+    while True:
+        choice = model_menu()
+
+        if choice == "1":
+            run_model_comparison(session) 
+
+        elif choice == "2":
+            run_model_optimisation_workflow(session)
+
+        elif choice == "0":
+            break
+
+def run_feature_experiments():
+    while True:
+        choice = feature_menu()
+
+        if choice == "1":
+            run_feature_importance_workflow(session)
+
+        elif choice == "2":
+            feature_subset_workflow(session)
+
+        elif choice == "3":
+            show_selected_features(session)
+
+        elif choice == "0":
+            break
+
+def run_data_tools():
+    while True:
+        choice = data_menu()
+
+        if choice == "1":
+            demo_data_loading()
+
+        elif choice == "2":
+            demo_feature_engineering()
+
+        elif choice == "0":
+            break
+
+def run_classifier_mode():
+    while True:
+        choice = classifier_menu()
+
+        if choice == "1":
+            select_active_model(session)
+
+        elif choice == "2":
+            run_classifier_workflow(session)
+
+        elif choice == "3":
+            describe_model(session.model)
+
+        elif choice == "0":
+            break
 
 while True:
-
-    show_menu()
-    choice = input("Select option: ")
+    choice = main_menu()
 
     if choice == "1":
-        demo_data_loading()
+        run_experiment_mode()
 
     elif choice == "2":
-        session.X_train, session.X_test, session.y_train, session.y_test = demo_feature_engineering()
-
-    elif choice == "3":
-        if session.X_train is None:
-            print("Building features automatically...")
-            session.X_train, session.X_test, session.y_train, session.y_test = demo_feature_engineering()
-        
-        show_model_menu()
-        model_choice = input("Select model: ")
-        selected = MODEL_MENU.get(model_choice)
-        if selected:
-            session.model = run_single_model_with_display(
-                selected,
-                models[selected],
-                session.X_train, 
-                session.X_test,
-                session.y_train, 
-                session.y_test
-            )
-        show_plots = input("Show confusion matrix? (y/n): ")
-        if show_plots == "y":
-            plot_confusion_matrix(session.y_test, session.model.predict(session.X_test), "confusion matrix")
-
-    elif choice == "4":
-        if session.X_train is None:
-            print("Building features automatically...")
-            session.X_train, session.X_test, session.y_train, session.y_test = demo_feature_engineering()
-        else:
-
-            print("Select models to run (comma-separated):")
-            print("1 RF, 2 KNN, 3 NN, 4 KMeans")
-
-            choices = input("Choice: ").split(",")
-
-            selected_models = {
-                MODEL_MENU[c.strip()]: models[MODEL_MENU[c.strip()]]
-                for c in choices if c.strip() in MODEL_MENU
-            }
-
-            print("\nRunning experiment...")
-            trained_models, results = run_experiment(
-            selected_models,
-            session.X_train, 
-            session.X_test,
-            session.y_train, 
-            session.y_test,
-            evaluate_classification
-        )
-            
-            print(results)
-
-            plot = input("Show plots? (y/n): ")
-
-            if plot == "y":
-                for metric in ["accuracy", "precision", "recall", "f1"]:
-                    plot_metric_select(results, metric)
-
-    elif choice == "5":
-        if session.model is None:
-            print("Please train a model first (option 3).")
-        else:
-            print(f"Using model: {type(session.model).__name__}")
-            url = input("Enter URL: ")
-            features = extract_features(url)
-            prediction = predict_url(session.model, features)
-            label_map = {0: "Benign", 1: "Malicious"}
-            print("Prediction:", label_map.get(prediction, prediction))
-
-    elif choice == "6":
-        if session.X_train is None:
-            print("Building features automatically...")
-            session.X_train, session.X_test, session.y_train, session.y_test = demo_feature_engineering()
-
-        else:
-            show_feature_menu()
-            feature_imp_choice = input("Select method: ")
-
-            run_feature_importance(
-                feature_imp_choice,
-                session.X_train,
-                session.y_train,
-                session.X_test,
-                feature_names
-            )
+        run_classifier_mode()
 
     elif choice == "0":
         print("Exiting...")
         break
+

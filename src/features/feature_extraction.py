@@ -1,5 +1,7 @@
 import re
 import statistics
+from src.config.config import feature_names
+import numpy as np
 
 def tokenize_url(url):
     tokens = re.split(r"[./?=&_\-@]", url.lower())
@@ -221,3 +223,39 @@ def extract_features(url):
         has_www(url),
         has_com(url)
     ]
+
+class FeatureMatrixChecker:
+    @staticmethod
+    def print_summary(X, y):
+        print("Feature matrix shape:", X.shape)
+        print("Label vector shape:", y.shape)
+        print("First feature vector:", X[0])
+        print("First label:", y[0])
+
+def build_feature_matrix(urls, labels):
+
+    X = []
+    y = []
+
+    for url, label in zip(urls, labels):
+        features = extract_features(url)
+        X.append(features)
+        y.append(label)
+
+    X = np.array(X)
+    y = np.array(y)
+
+    return X, y
+
+from src.config.config import feature_names
+
+def show_selected_features(session):
+    if session.selected_features is None:
+        
+        selected_idx = list(range(len(feature_names)))
+    else:
+        selected_idx = session.selected_features
+
+    print(f"Active features ({len(selected_idx)}):")
+    for i in selected_idx:
+        print("-", feature_names[i])

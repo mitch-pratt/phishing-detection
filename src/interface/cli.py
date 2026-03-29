@@ -5,6 +5,11 @@ def show_menu():
     print("4. Run full experiment")
     print("5. URL Classifier")
     print("6. Feature Importance")
+    print("7. Model Optimisation")
+    print("8. Evaluate Model")
+    print("9. Model Info")
+    print("10. Current Features")
+    print("11. Feature Subset Experiment")
     print("0. Exit")
 
 def show_model_menu():

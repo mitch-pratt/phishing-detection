@@ -16,30 +16,10 @@ def train_kmeans(X_train, y_train):
     clusters = model.fit_predict(X_train)
 
     mapping = {}
-
-    feature_names = [
-    "URL length","Dot count","Hyphen count","Digit count",
-    "@ symbol","Subdomains","Suspicious words","Raw word count",
-    "Avg word length","Longest word","Shortest word","Word std",
-    "Digit ratio","Domain length","Path length","Path level",
-    "Dash hostname","Special chars","Underscore count","Percent encoding",
-    "Ampersand count","Hash count","Query components","No HTTPS",
-    "IP in URL","HTTPS token","Domain keyword","Known TLD",
-    "Consecutive repeat","Punycode","Contains WWW","Contains .com"
-    ]
     
     for c in np.unique(clusters):
         labels = y_train[clusters == c]
-        mapping[c] = np.bincount(labels).argmax()
-        print(f"Cluster {c}:")
-        print("Size:", len(labels))
-        print("Phishing:", np.sum(labels==1))
-        print("Legitmate:",np.sum(labels==0))
-        centroid = model.cluster_centers_[c]
-        print("Centroid features:")
-        
-        for name,value in zip(feature_names, centroid):
-            print(f" {name}:{value:.2f}")
+        mapping[c] = np.bincount(labels).argmax() 
      
     model.cluster_label_map = mapping
     print("KMeans trained successfully")
