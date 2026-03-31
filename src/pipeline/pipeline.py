@@ -1,99 +1,43 @@
-from src import models
-from src.config.config import models, MODEL_MENU
+import numpy as np
+
+from src.evaluation.feature_subset_experiment import feature_subset_workflow
+from src.models.model_manager import describe_model, predict_url
+from src.models.grid_search import optimise_knn, optimise_nn, optimise_rf
+
+
+from src.features.feature_extraction import extract_features, show_selected_features
+
+
 from src.evaluation.feature_importance import run_feature_importance
 from src.evaluation.metrics import evaluate_classification, plot_confusion_matrix
 from src.evaluation.plots import visualise_results
-from src.evaluation.runner import run_experiment
-from src.features.feature_extraction import build_feature_matrix, extract_features, show_selected_features
 
-from src.dataset.dataset_manager import DataLoader
-from src.interface.cli import show_feature_menu
-from src.models.grid_search import optimise_knn, optimise_nn, optimise_rf
-from src.models.model_manager import predict_url
+from src.interface.cli import (
+    classifier_menu,
+    data_menu,
+    feature_menu,
+    model_menu,
+    select_active_model
+)
 
-from sklearn.model_selection import train_test_split
-from src.config.config import feature_names
 
-def initialise_models(session):
- 
-    if session.X_train is None:
-        session.X_train, session.X_test, session.y_train, session.y_test = build_and_split()
+from src.pipeline.demo_pipeline import demo_data_loading, demo_feature_engineering
 
-    X_train = apply_features(session, session.X_train)
-    X_test = apply_features(session, session.X_test)
-    y_train = session.y_train
-    y_test = session.y_test
 
-    base_models = {
-        "Random Forest": models["Random Forest"],
-        "KNN": models["KNN"],
-        "Neural Network": models["Neural Network"],
-        "K-Means": models["K-Means"]
-    }
+from src.pipeline.data_utils import (
+    ensure_dataset,
+    get_feature_data,
+    apply_features
+)
+from src.session.session import Session
 
-    print("Training base models...")
 
-    for name, train_fn in base_models.items():
-        print(f"\nTraining {name}...")
-    
-        model = train_fn(X_train, y_train)
-        
-        
-        session.models[name] = model
 
-        y_pred = model.predict(X_test)
-        metrics = evaluate_classification(y_test, y_pred)
-        print(f"{name} trained. Metrics:")
-        for k, v in metrics.items():
-            print(f"  {k}: {v:.4f}")
 
-    print("\nAll base models trained and stored in session.")
 
-def feature_split(X, y, test_size=0.25, random_state=42):
-    return train_test_split(X, y, test_size=test_size, random_state=random_state)
 
-def ensure_dataset(session):
-    if session.X_train is None:
-        print("Building features automatically...")
-        session.X_train, session.X_test, session.y_train, session.y_test = build_and_split()
 
-        session.selected_features = list(range(session.X_train.shape[1]))
 
-def get_feature_data(session):
-    X_train = apply_features(session, session.X_train)
-    X_test = apply_features(session, session.X_test)
-    return X_train, X_test
-
-def build_and_split():
-    
-    loader = DataLoader("data/urlset.csv")
-    df = loader.load_csv()
-    df = loader.clean()
-    urls, labels = loader.get_urls_labels()
-    
-    X, y = build_feature_matrix(urls, labels)
-    X_train, X_test, y_train, y_test = feature_split(X, y)
-
-    return X_train, X_test, y_train, y_test
-
-def apply_features(session, features):
-    import numpy as np
-
-    features = np.array(features)
-
-    if session.selected_features is None:
-        return features
-
-    selected_idx = session.selected_features
-
-    if features.ndim == 1:
-        return features[selected_idx]
-
-    elif features.ndim == 2:
-        return features[:, selected_idx]
-
-    else:
-        raise ValueError(f"Unexpected features shape: {features.shape}")
     
 def run_model_comparison(session):
 
@@ -135,9 +79,13 @@ def run_model_comparison(session):
     for name, model in selected_models.items():
         print(f"Evaluating {name}...")
 
-        y_pred = model.predict(X_test)
-        metrics = evaluate_classification(y_test, y_pred)
+        if name == "K-Means":
+            clusters = model.predict(X_test)
+            y_pred = np.array([model.cluster_label_map[c] for c in clusters])
+        else:
+            y_pred = model.predict(X_test)
 
+        metrics = evaluate_classification(y_test, y_pred)
         results[name] = metrics
 
 
@@ -230,3 +178,86 @@ def run_model_evaluation_workflow(session):
     show_plots = input("Show confusion matrix? (y/n): ")
     if show_plots == "y":
         plot_confusion_matrix(session.y_test, y_pred, "Confusion Matrix")
+
+def run_experiment_mode(session):
+    while True:
+        print("\n--- Experiment Mode ---")
+        print("1. Model Experiments")
+        print("2. Feature Experiments")
+        print("3. Data / Debug Tools")
+        print("0. Back")
+
+        choice = input("Select option: ")
+
+        if choice == "1":
+            run_model_experiments(session)
+
+        elif choice == "2":
+            run_feature_experiments(session)
+
+        elif choice == "3":
+            run_data_tools()
+
+        elif choice == "0":
+            break
+
+def run_model_experiments(session):
+    while True:
+        choice = model_menu()
+
+        if choice == "1":
+            run_model_comparison(session) 
+
+        elif choice == "2":
+            run_model_optimisation_workflow(session)
+
+        elif choice == "0":
+            break
+
+def run_feature_experiments(session):
+    while True:
+        choice = feature_menu()
+
+        if choice == "1":
+            run_feature_importance_workflow(session)
+
+        elif choice == "2":
+            feature_subset_workflow(session)
+
+        elif choice == "3":
+            show_selected_features(session)
+
+        elif choice == "0":
+            break
+
+def run_data_tools():
+    while True:
+        choice = data_menu()
+
+        if choice == "1":
+            demo_data_loading()
+
+        elif choice == "2":
+            demo_feature_engineering()
+
+        elif choice == "0":
+            break
+
+def run_classifier_mode(session):
+    while True:
+        choice = classifier_menu()
+
+        if choice == "1":
+            select_active_model(session)
+
+        elif choice == "2":
+            run_classifier_workflow(session)
+
+        elif choice == "3":
+            if session.model is None:
+                print("No active model selected.")
+            else:
+                describe_model(session.model)
+
+        elif choice == "0":
+            break

@@ -1,7 +1,9 @@
-from src.config.config import feature_names
+
 from src.dataset.dataset_manager import DataLoader
 from src.features.feature_extraction import FeatureMatrixChecker, build_feature_matrix, extract_features
-from src.pipeline.pipeline import feature_split
+from src.pipeline.data_utils import feature_split
+from src.config.config import feature_names
+
 
 def demo_data_loading():
     print("\n Loading dataset...")

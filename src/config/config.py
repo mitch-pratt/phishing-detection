@@ -60,5 +60,9 @@ feature_names = [
     "Punycode",
 
     "Contains WWW",
-    "Contains .com"
+    "Contains .com",
+    "vowel_ratio",
+    "digits_in_hostname",
+    "longest_subdomain_length",
+    "suspicious_tld"
 ]

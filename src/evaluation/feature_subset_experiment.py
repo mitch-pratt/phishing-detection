@@ -5,7 +5,7 @@ from sklearn.base import is_classifier
 
 from src.config.config import feature_names
 from src.evaluation.metrics import evaluate_classification
-from src.pipeline.pipeline import apply_features, build_and_split, ensure_dataset, initialise_models
+from src.pipeline.data_utils import apply_features, ensure_dataset
 
 def run_feature_subset_experiment(model, X_train, X_test, y_train, y_test):
 
@@ -55,10 +55,17 @@ def run_feature_subset_experiment(model, X_train, X_test, y_train, y_test):
         results.append({
             "num_features": k,
             "accuracy": metrics["accuracy"],
+            "precision": metrics["precision"],
+            "recall": metrics["recall"],
             "f1": metrics["f1"]
-        })
-
-        print(f"{k} features → Acc: {metrics['accuracy']:.4f}, F1: {metrics['f1']:.4f}")
+        })  
+        print(
+            f"{k} features: "
+            f"Acc: {metrics['accuracy']:.4f}, "
+            f"Prec: {metrics['precision']:.4f}, "
+            f"Rec: {metrics['recall']:.4f}, "
+            f"F1: {metrics['f1']:.4f}"
+        )
 
         if best_result is None or metrics["accuracy"] > best_result["accuracy"]:
             best_result = results[-1]
@@ -70,7 +77,7 @@ def run_feature_subset_experiment(model, X_train, X_test, y_train, y_test):
     for f in selected_feature_names:
         print("-", f)
 
-    print(f"\nBest accuracy: {best_result['accuracy']:.4f} using {best_result['num_features']} features")
+    print(f"\nBest F1: {best_result['f1']:.4f} using {best_result['num_features']} features")
 
     return results, ranking, best_indices, selected_feature_names
 
@@ -104,8 +111,8 @@ def feature_subset_workflow(session):
     best = find_min_features(results, threshold=0.90)
 
     if best:
-        print(f"\nMinimum features for ≥90% accuracy: {best['num_features']}")
-        print(f"Accuracy: {best['accuracy']:.4f}")
+        print(f"\nMinimum features for ≥90% f1: {best['num_features']}")
+        print(f"F1: {best['f1']:.4f}")
 
         use = input("\nApply this feature subset? (y/n): ")
 
@@ -122,10 +129,10 @@ def feature_subset_workflow(session):
                 selected_idx = best_indices
                 print(f"\nApplying best subset ({len(selected_idx)} features)...")
 
-            session.X_train = session.X_train[:, selected_idx]
-            session.X_test = session.X_test[:, selected_idx]
+            session.selected_features = list(selected_idx)
+            session.selected_feature_names = [feature_names[i] for i in selected_idx]
 
-            session.selected_features = selected_idx
+            #session.selected_features = selected_idx
 
             retrain_session_models(session)
 

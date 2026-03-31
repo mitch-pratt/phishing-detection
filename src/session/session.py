@@ -7,3 +7,4 @@ class Session:
         self.selected_features = None
         self.models = {} 
         self.optimised_models = {} 
+        self.model = None

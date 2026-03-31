@@ -167,6 +167,41 @@ def contains_suspicious_words(url):
     url_lower = url.lower()
     return sum(word in url_lower for word in SUSPICIOUS_WORDS)
 
+import math
+from collections import Counter
+
+def url_entropy(url):
+    if not url:
+        return 0
+    counts = Counter(url)
+    probs = [c / len(url) for c in counts.values()]
+    return -sum(p * math.log2(p) for p in probs)
+
+def vowel_ratio(url):
+    vowels = "aeiou"
+    letters = [c for c in url.lower() if c.isalpha()]
+    if not letters:
+        return 0
+    return sum(c in vowels for c in letters) / len(letters)
+
+def digits_in_hostname(url):
+    host = get_host(url)
+    return sum(c.isdigit() for c in host)
+
+def longest_subdomain_length(url):
+    host = get_host(url)
+    parts = host.split(".")
+    if len(parts) <= 2:
+        return 0
+    subdomains = parts[:-2]
+    return max(len(s) for s in subdomains)
+
+def suspicious_tld(url):
+    host = get_host(url)
+    tld = host.split(".")[-1]
+    suspicious = ["tk", "ml", "ga", "cf"]
+    return 1 if tld in suspicious else 0
+
 #later - can analyse each subdomain to find most common words/tokens associated with phishing and self update? 
 
 def extract_features(url):
@@ -221,7 +256,11 @@ def extract_features(url):
         consecutive_char_repeat(url),
         has_punycode(url),
         has_www(url),
-        has_com(url)
+        has_com(url),
+        vowel_ratio(url),
+        digits_in_hostname(url),
+        longest_subdomain_length(url),
+        suspicious_tld(url)
     ]
 
 class FeatureMatrixChecker:
@@ -251,7 +290,7 @@ from src.config.config import feature_names
 
 def show_selected_features(session):
     if session.selected_features is None:
-        
+
         selected_idx = list(range(len(feature_names)))
     else:
         selected_idx = session.selected_features
